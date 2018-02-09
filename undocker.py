@@ -6,6 +6,7 @@ import io
 import json
 import logging
 import os
+import shutil
 import sys
 import tarfile
 import tempfile
@@ -152,7 +153,7 @@ def main():
                     if not args.no_whiteouts:
                         LOG.info('processing whiteouts')
                         for member in layer.getmembers():
-                            path = member.path
+                            path = os.path.join(args.output, member.path)
                             if path.startswith('.wh.') or '/.wh.' in path:
                                 if path.startswith('.wh.'):
                                     newpath = path[4:]
@@ -162,7 +163,11 @@ def main():
                                 try:
                                     LOG.info('removing path %s', newpath)
                                     os.unlink(path)
-                                    os.unlink(newpath)
+
+                                    if os.path.isdir(newpath):
+                                        shutil.rmtree(newpath)
+                                    else:
+                                        os.unlink(newpath)
                                 except OSError as err:
                                     if err.errno != errno.ENOENT:
                                         raise
